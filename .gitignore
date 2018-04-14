@@ -1,0 +1,12 @@
+bin/
+tmp/
+.target
+.settings/
+.metadata
+*.tmp
+*.bak
+*.swp
+local.properties
+.loadpath
+.recommenders
+
