@@ -1,10 +1,12 @@
 
+/**
+ * @author shahvicky1992
+ */
 enum Edge_Type {
 	BASIC, BRANCH, REJECTED
 }
 
-
-public class Edge {
+public class Edge implements Comparable<Edge> {
 
 	int weight;
 	int minId;
@@ -64,6 +66,20 @@ public class Edge {
 	@Override
 	public String toString() {
 		return "Edge [weight=" + weight + ", minId=" + minId + ", maxId=" + maxId + ", edgeType=" + edgeType + "]";
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(Edge e) {
+		int temp = Integer.compare(weight, e.weight);
+		if(temp == 0) {
+			temp = Integer.compare(getMinId(), e.getMinId());
+			return temp == 0 ? Integer.compare(getMaxId(), e.getMaxId()) : temp;
+		} else {
+			return temp;
+		}
 	}
 	
 	

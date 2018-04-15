@@ -9,6 +9,7 @@
 #
 # Format is:
 # UID Hostname Port
+#
 5	 dc02.utdallas.edu	 1234
 200	 dc03.utdallas.edu	 1233
 8	 dc04.utdallas.edu	 1233

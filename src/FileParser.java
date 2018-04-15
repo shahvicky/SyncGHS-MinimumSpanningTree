@@ -1,4 +1,7 @@
 
+/**
+ * @author shahvicky1992
+ */
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -6,11 +9,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 public class FileParser{
 
+	final static Logger logger = Logger.getLogger(FileParser.class);
 	int numOfNodes;
 	
-	public void readFile(){
+	public ArrayList<Edge> readFile(String myHost){
+		ArrayList<Edge> basicEdges = new ArrayList<>();
 		File file = new File("C:\\Users\\shahvicky1992\\ProjectWorkspace\\Distributed\\SyncGHS\\src\\config1.txt");
 		try( BufferedReader reader = new  BufferedReader(new FileReader(file)) ) {
 			String line;
@@ -22,10 +29,10 @@ public class FileParser{
 				Node.numOfNodes = numOfNodes;
 				break;
 			}
-			System.out.println(numOfNodes);
+			logger.debug(numOfNodes);
+			
 			/*read the nodes id and the host and post info and store it as a hashmap
 			 * as { id = [host, port]}*/
-			
 			HashMap<Integer, ArrayList<String>> id2HostPostMap = new HashMap<>();
 			while((line = reader.readLine()) != null && numOfNodes>0) {
 				if(!isLineValid(line))
@@ -34,11 +41,16 @@ public class FileParser{
 				id2HostPostMap.put(Integer.parseInt(temp[0]), new ArrayList<String>());
 				id2HostPostMap.get(Integer.parseInt(temp[0])).add(temp[1]);
 				id2HostPostMap.get(Integer.parseInt(temp[0])).add(temp[2]);
+				if(myHost.toLowerCase().equals(temp[1].toLowerCase())){
+					Node.myId = Integer.parseInt(temp[0]);
+					Node.myPort = Integer.parseInt(temp[2]);
+					
+				}
 				numOfNodes--;
 			}
 			
-			System.out.println(id2HostPostMap.toString());
-			ArrayList<Edge> basicEdges = new ArrayList<>();
+			logger.debug(id2HostPostMap.toString());
+			
 			while((line = reader.readLine()) != null) {
 				if(!isLineValid(line))
 					continue;
@@ -53,13 +65,14 @@ public class FileParser{
 				
 				basicEdges.add(new Edge(weight, minId, maxId));
 			}
-			System.out.println(basicEdges.toString());
+			logger.debug(basicEdges.toString());
 			
 			
 		} catch (IOException e) {
-			System.out.println("File not found");
-			//e.printStackTrace();
+			logger.info("File not found");
 		}
+		return basicEdges;
+		
 		
 	}
 	
