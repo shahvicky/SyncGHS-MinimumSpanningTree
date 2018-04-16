@@ -14,7 +14,10 @@ public class Message implements Serializable{
 	int sourceId;
 	int destinationId;
 	String examineResponse;		//ACCEPT-if different leader	 or REJECT-if same leader
-	Edge edge;
+	Edge currentEdge;
+	Edge mwoeEdge;
+	int mwoeSourceId;			//the nodeId on the mwoe in own component
+	int mwoeDestinationId;		//the nodeId on the mwoe in the other component
 
 	public Message(Message_Type msgType) {
 		this.msgType = msgType;
@@ -60,15 +63,38 @@ public class Message implements Serializable{
 		this.examineResponse = examineResponse;
 	}
 
-	public Edge getEdge() {
-		return edge;
+	public Edge getCurrentEdge() {
+		return currentEdge;
 	}
 
-	public void setEdge(Edge edge) {
-		this.edge = edge;
+	public void setCurrentEdge(Edge currentEdge) {
+		this.currentEdge = currentEdge;
 	}
 
-	
+	public Edge getMwoeEdge() {
+		return mwoeEdge;
+	}
+
+	public void setMwoeEdge(Edge mwoeEdge) {
+		this.mwoeEdge = mwoeEdge;
+	}
+
+	public int getMwoeSourceId() {
+		return mwoeSourceId;
+	}
+
+	public void setMwoeSourceId(int mwoeSourceId) {
+		this.mwoeSourceId = mwoeSourceId;
+	}
+
+	public int getMwoeDestinationId() {
+		return mwoeDestinationId;
+	}
+
+	public void setMwoeDestinationId(int mwoeDestinationId) {
+		this.mwoeDestinationId = mwoeDestinationId;
+	}
+
 	/**
 	 * @param leaderId
 	 * @param searchMwoe
@@ -162,5 +188,5 @@ public class Message implements Serializable{
 	private Message searchMWOEMsg() {
 		return new Message(Node.leaderId, Message_Type.SEARCH_MWOE);
 	}
-
+	
 }
