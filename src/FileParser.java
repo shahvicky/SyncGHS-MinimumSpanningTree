@@ -70,8 +70,9 @@ public class FileParser {
 				int minId = Integer.parseInt(idPair[0]);
 				int maxId = Integer.parseInt(idPair[1]);
 				if (Node.myId == minId || Node.myId == maxId) {
-					String edgeEndHost = id2HostPostMap.get(myId).get(0);
-					String edgeEndPort = id2HostPostMap.get(myId).get(1);
+					int endPointId = Node.myId == minId ? maxId : minId;
+					String edgeEndHost = id2HostPostMap.get(endPointId).get(0);
+					String edgeEndPort = id2HostPostMap.get(endPointId).get(1);
 					Node.basicEdges.add(new Edge(weight, minId, maxId, edgeEndHost, Integer.parseInt(edgeEndPort)));
 				}
 			}

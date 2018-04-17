@@ -4,20 +4,19 @@ import java.io.Serializable;
  * @author shahvicky1992
  */
 enum Message_Type {
-	SEARCH_MWOE, EXAMINE, EXAMINE_RESPONSE, REPLY_MWOE, ADD_MWOE, NEW_LEADER
+	SEARCH_MWOE, EXAMINE, EXAMINE_RESPONSE, REPLY_MWOE, ADD_MWOE, JOIN, NEW_LEADER, NULL
 }
 
 public class Message implements Serializable{
 	
 	int leaderId;
 	Message_Type msgType;
-	int sourceId;
-	int destinationId;
 	String examineResponse;		//ACCEPT-if different leader	 or REJECT-if same leader
 	Edge currentEdge;
 	Edge mwoeEdge;
 	int mwoeSourceId;			//the nodeId on the mwoe in own component
 	int mwoeDestinationId;		//the nodeId on the mwoe in the other component
+	int newLeaderId;
 
 	public Message(Message_Type msgType) {
 		this.msgType = msgType;
@@ -39,22 +38,6 @@ public class Message implements Serializable{
 		this.msgType = msgType;
 	}
 
-	public int getSourceId() {
-		return sourceId;
-	}
-
-	public void setSourceId(int sourceId) {
-		this.sourceId = sourceId;
-	}
-
-	public int getDestinationId() {
-		return destinationId;
-	}
-
-	public void setDestinationId(int destinationId) {
-		this.destinationId = destinationId;
-	}
-
 	public String getExamineResponse() {
 		return examineResponse;
 	}
@@ -65,6 +48,13 @@ public class Message implements Serializable{
 
 	public Edge getCurrentEdge() {
 		return currentEdge;
+	}
+
+	@Override
+	public String toString() {
+		return "Message [leaderId=" + leaderId + ", msgType=" + msgType + ", examineResponse=" + examineResponse
+				+ ", currentEdge=" + currentEdge + ", mwoeEdge=" + mwoeEdge + ", mwoeSourceId=" + mwoeSourceId
+				+ ", mwoeDestinationId=" + mwoeDestinationId + ", newLeaderId=" + newLeaderId + "]";
 	}
 
 	public void setCurrentEdge(Edge currentEdge) {
@@ -93,6 +83,14 @@ public class Message implements Serializable{
 
 	public void setMwoeDestinationId(int mwoeDestinationId) {
 		this.mwoeDestinationId = mwoeDestinationId;
+	}
+
+	public int getNewLeaderId() {
+		return newLeaderId;
+	}
+
+	public void setNewLeaderId(int newLeaderId) {
+		this.newLeaderId = newLeaderId;
 	}
 
 	/**

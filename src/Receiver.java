@@ -4,6 +4,8 @@ import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
@@ -24,16 +26,22 @@ public class Receiver implements Runnable {
 			boolean addFlag = true;
 			in = new ObjectInputStream(client.getInputStream());
 			message = (Message) in.readObject();
+			logger.debug(message.toString());
 			// immediately send Reject if the Examine msg received from same component
 			if(message.getMsgType().equals(Message_Type.EXAMINE)) {
 				addFlag= false;
 				Message msg;
-				if(message.getLeaderId() == Node.leaderId){
-					msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "REJECT");
-				} else {
-					msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "ACCEPT");
+				synchronized (this) {
+					if(message.getLeaderId() == Node.leaderId){
+						addEdgeToRejectedEdges(message.getCurrentEdge());
+						msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "REJECT");
+						
+					} else {
+						msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "ACCEPT");
+					}
+					sendMessage(msg, message.getCurrentEdge());
 				}
-				sendMessage(msg, message.getCurrentEdge());
+				
 			}
 			if(addFlag){
 				Node.buffer.offer(message);
@@ -44,6 +52,24 @@ public class Receiver implements Runnable {
 			logger.error(e);
 		} 
 		
+	}
+
+	/**
+	 * @param currentEdge
+	 */
+	private synchronized void addEdgeToRejectedEdges(Edge currentEdge) {
+		synchronized (Node.basicEdges) {
+			Iterator<Edge> itr = Node.basicEdges.iterator();
+			while(itr.hasNext()) {
+				Edge edge = itr.next();
+				if(edge.getMinId() == currentEdge.getMinId() && edge.getMaxId() == currentEdge.getMaxId()) {
+					edge.setEdgeType(Edge_Type.REJECTED);
+					Node.rejectEdges.add(edge);
+					itr.remove();
+					//Node.basicEdges.remove(edge);
+				}
+			}
+		}
 	}
 
 	/**

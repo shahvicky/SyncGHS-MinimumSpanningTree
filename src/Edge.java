@@ -1,3 +1,4 @@
+import java.io.Serializable;
 
 /**
  * @author shahvicky1992
@@ -6,7 +7,7 @@ enum Edge_Type {
 	BASIC, BRANCH, REJECTED
 }
 
-public class Edge implements Comparable<Edge> {
+public class Edge implements Comparable<Edge>, Serializable {
 
 	int weight;
 	int minId;

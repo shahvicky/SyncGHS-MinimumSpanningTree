@@ -21,6 +21,7 @@ public class Node {
 	static int parentId;
 	static int level;
 	static int numOfNodes;
+	static boolean isOnCoreEdge = false;
 	static ArrayList<Edge> basicEdges = new ArrayList<>();
 	static ArrayList<Edge> branchEdges = new ArrayList<>();
 	static ArrayList<Edge> rejectEdges = new ArrayList<>();
@@ -48,6 +49,9 @@ public class Node {
 		Listener listener = new Listener(myPort);
 		Thread thread = new Thread(listener);
 		thread.start();
+		
+		SyncGHS ghs = new SyncGHS(numOfNodes);
+		ghs.constructMST();
 		
 		
 
