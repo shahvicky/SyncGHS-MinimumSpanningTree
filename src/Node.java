@@ -51,6 +51,7 @@ public class Node {
 		thread.start();
 		
 		SyncGHS ghs = new SyncGHS(numOfNodes);
+		logger.debug("Starting MST Construction");
 		ghs.constructMST();
 		
 		
