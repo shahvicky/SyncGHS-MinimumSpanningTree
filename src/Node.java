@@ -22,7 +22,7 @@ public class Node {
 	static int parentId;
 	static int level;
 	static int numOfNodes;
-	//static AtomicInteger phase = new AtomicInteger(0);
+	static AtomicInteger phase = new AtomicInteger(0);
 	static boolean isOnCoreEdge = false;
 	static ArrayList<Edge> basicEdges = new ArrayList<>();
 	static ArrayList<Edge> branchEdges = new ArrayList<>();

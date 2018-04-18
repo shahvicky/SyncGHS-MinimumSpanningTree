@@ -29,34 +29,35 @@ public class Receiver implements Runnable {
 			logger.debug(message.toString());
 			// immediately send Reject if the Examine msg received from same component
 			if(message.getMsgType().equals(Message_Type.EXAMINE)) {
-				addFlag= false;
-				Message msg;
-				synchronized (this) {
-					Edge responseEdge = new Edge();
-					for(Edge edge : Node.basicEdges) {
-						//this loop is required to find proper endpoint host and post 
-						if(areSameEdges(edge, message.getCurrentEdge())) {
-							copyObject(edge, responseEdge);
-						}
-					}
-					if(responseEdge.getMinId() == responseEdge.getMaxId()) {
-						for(Edge edge : Node.branchEdges) {
+				if(!(message.getPhaseNo() > Node.phase.intValue())) {
+					addFlag= false;
+					Message msg;
+					synchronized (this) {
+						Edge responseEdge = new Edge();
+						for(Edge edge : Node.basicEdges) {
 							//this loop is required to find proper endpoint host and post 
 							if(areSameEdges(edge, message.getCurrentEdge())) {
 								copyObject(edge, responseEdge);
 							}
 						}
+						if(responseEdge.getMinId() == responseEdge.getMaxId()) {
+							for(Edge edge : Node.branchEdges) {
+								//this loop is required to find proper endpoint host and post 
+								if(areSameEdges(edge, message.getCurrentEdge())) {
+									copyObject(edge, responseEdge);
+								}
+							}
+						}
+						if(message.getLeaderId() == Node.leaderId){
+							addEdgeToRejectedEdges(responseEdge);
+							msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "REJECT");
+							
+						} else {
+							msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "ACCEPT");
+						}
+						sendMessage(msg, responseEdge);
 					}
-					if(message.getLeaderId() == Node.leaderId){
-						addEdgeToRejectedEdges(responseEdge);
-						msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "REJECT");
-						
-					} else {
-						msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "ACCEPT");
-					}
-					sendMessage(msg, responseEdge);
 				}
-				
 			}
 			if(addFlag){
 				Node.buffer.offer(message);
@@ -128,6 +129,7 @@ public class Receiver implements Runnable {
 		if (edge == null) {
 			return;
 		}
+		msg.setPhaseNo(Node.phase.intValue());
 		msg.setCurrentEdge(edge); // the edge from which the message is being
 									// sent
 		ObjectOutputStream outputStream = null;

@@ -22,12 +22,12 @@ public class SyncGHS {
 	boolean algoTermination;
 
 	public SyncGHS(int numOfNodes) {
-		this.numOfRounds = (int) (Math.log(numOfNodes) + 1);
+		this.numOfRounds = (int)Math.ceil(Math.log(numOfNodes));
 	}
 
 	public void constructMST() {
 
-		while (numOfRounds > 0) {
+		while (Node.phase.intValue() < numOfRounds) {
 			noOfAck = 0;
 			isCandidateForLeader = new Edge();
 			coreEdge = new Edge();
@@ -431,12 +431,56 @@ public class SyncGHS {
 					}
 				}
 			}
-			numOfRounds--; // end of a phase
+			Node.phase.incrementAndGet(); // end of a phase
+			
+			//check if someone is waiting for examine_response msg
+			for(Message msg : Node.buffer) {
+				if(msg.msgType.equals(Message_Type.EXAMINE)) {
+					Edge examineEdge = new Edge();
+					Message message;
+					for(Edge edge : Node.basicEdges) {
+						//this loop is required to find proper endpoint host and post 
+						if(areSameEdges(edge, msg.getCurrentEdge())) {
+							copyObject(edge, examineEdge);
+						}
+					}
+					if(examineEdge.getMinId() == examineEdge.getMaxId()) {
+						for(Edge edge : Node.branchEdges) {
+							//this loop is required to find proper endpoint host and post 
+							if(areSameEdges(edge, msg.getCurrentEdge())) {
+								copyObject(edge, examineEdge);
+							}
+						}
+					}
+					if(msg.getLeaderId() == Node.leaderId) {
+						addEdgeToRejectedEdges(examineEdge);
+						message = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "REJECT");
+					} else {
+						message = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "ACCEPT");
+					}
+					sendMessage(message, examineEdge);
+				}
+			}
+			
 		} // end of while log(n) rounds
 
 		logger.info("Result" + Node.branchEdges.toString());
 	} // end of constructMST
 
+	
+	/**
+	 * @param msgType
+	 * @param string
+	 * @return
+	 */
+	private Message createExamineResponseMsg(Message_Type msgType, String response) {
+		Message msg = new Message(msgType);
+		msg.setLeaderId(Node.leaderId);
+		msg.setExamineResponse(response);
+		return msg;
+	}
+	
+	
 	/**
 	 * @param msgType
 	 * @param newLeaderId
@@ -654,6 +698,7 @@ public class SyncGHS {
 		if (edge == null) {
 			return;
 		}
+		msg.setPhaseNo(Node.phase.intValue());
 		msg.setCurrentEdge(edge); // the edge from which the message is being
 									// sent
 		ObjectOutputStream outputStream = null;
