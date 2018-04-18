@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 
@@ -21,6 +22,7 @@ public class Node {
 	static int parentId;
 	static int level;
 	static int numOfNodes;
+	//static AtomicInteger phase = new AtomicInteger(0);
 	static boolean isOnCoreEdge = false;
 	static ArrayList<Edge> basicEdges = new ArrayList<>();
 	static ArrayList<Edge> branchEdges = new ArrayList<>();

@@ -17,6 +17,7 @@ public class Message implements Serializable{
 	int mwoeSourceId;			//the nodeId on the mwoe in own component
 	int mwoeDestinationId;		//the nodeId on the mwoe in the other component
 	int newLeaderId;
+	int phaseNo;
 
 	public Message(Message_Type msgType) {
 		this.msgType = msgType;
@@ -91,6 +92,14 @@ public class Message implements Serializable{
 
 	public void setNewLeaderId(int newLeaderId) {
 		this.newLeaderId = newLeaderId;
+	}
+
+	public int getPhaseNo() {
+		return phaseNo;
+	}
+
+	public void setPhaseNo(int phaseNo) {
+		this.phaseNo = phaseNo;
 	}
 
 	/**

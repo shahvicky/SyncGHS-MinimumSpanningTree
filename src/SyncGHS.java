@@ -215,6 +215,7 @@ public class SyncGHS {
 					isLocalMWOE = true;
 					// can be on core edge if receives a join
 					copyObject(localMWOE, isCandidateForLeader);
+					logger.debug("isCandidateForLeader....."+ isCandidateForLeader.toString());
 					// also send null msgs to basic edges
 					Message nullMsg = createNullMsg(Message_Type.NULL);
 					for (Edge edge : Node.basicEdges) {
@@ -277,6 +278,14 @@ public class SyncGHS {
 							copyObject(edge, mwoe);
 						}
 					}
+					if(mwoe.getMinId() == mwoe.getMaxId()) {
+						for(Edge edge : Node.branchEdges) {
+							//this loop is required to find proper endpoint host and post 
+							if(areSameEdges(edge, addMWOEMsg.getCurrentEdge())) {
+								copyObject(edge, mwoe);
+							}
+						}
+					}
 					addEdgeToBranchEdge(mwoe);
 					Message msg = createJoinMsg(Message_Type.JOIN);
 					sendMessage(msg, mwoe);
@@ -314,6 +323,7 @@ public class SyncGHS {
 			} else {
 				noOfNullJoinMsg = Node.basicEdges.size();
 			}
+			logger.debug("noOfNullJoinMsg  ... " + noOfNullJoinMsg);
 
 			while (noOfNullJoinMsg > 0) {
 				if (!Node.buffer.isEmpty()) {
@@ -333,6 +343,15 @@ public class SyncGHS {
 									copyObject(edge, joinEdge);
 								}
 							}
+							if(joinEdge.getMinId() == joinEdge.getMaxId()) {
+								for(Edge edge : Node.branchEdges) {
+									//this loop is required to find proper endpoint host and post 
+									if(areSameEdges(edge, msg.getCurrentEdge())) {
+										copyObject(edge, joinEdge);
+									}
+								}
+							}
+							logger.debug("join edge..." + joinEdge.toString());
 							addEdgeToBranchEdge(joinEdge);
 							noOfNullJoinMsg--;
 							boolean isCoreEdge = areSameEdges(isCandidateForLeader, joinEdge);
@@ -425,19 +444,21 @@ public class SyncGHS {
 	 */
 	private Message createNewLeaderMsg(Message_Type msgType, int newLeaderId) {
 		Message msg = new Message(msgType);
+		msg.setLeaderId(Node.leaderId);
 		msg.setNewLeaderId(newLeaderId);
 		return msg;
 	}
 
 	/**
-	 * @param isCandidateForLeader2
-	 * @param localMWOE
+	 * @param sourceEdge
+	 * @param destEdge
 	 */
 	private void copyObject(Edge sourceEdge, Edge destEdge) {
 		// only minId and maxId properties are required to check a unique edge
 		destEdge.setMaxId(sourceEdge.getMaxId());
 		destEdge.setMinId(sourceEdge.getMinId());
 		destEdge.setWeight(sourceEdge.getWeight());
+		destEdge.setEdgeType(sourceEdge.getEdgeType());
 		// copy the host and port of the end point
 		destEdge.setEdgeEndHostname(sourceEdge.getEdgeEndHostname());
 		destEdge.setEdgeEndPort(sourceEdge.getEdgeEndPort());

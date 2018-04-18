@@ -32,14 +32,29 @@ public class Receiver implements Runnable {
 				addFlag= false;
 				Message msg;
 				synchronized (this) {
+					Edge responseEdge = new Edge();
+					for(Edge edge : Node.basicEdges) {
+						//this loop is required to find proper endpoint host and post 
+						if(areSameEdges(edge, message.getCurrentEdge())) {
+							copyObject(edge, responseEdge);
+						}
+					}
+					if(responseEdge.getMinId() == responseEdge.getMaxId()) {
+						for(Edge edge : Node.branchEdges) {
+							//this loop is required to find proper endpoint host and post 
+							if(areSameEdges(edge, message.getCurrentEdge())) {
+								copyObject(edge, responseEdge);
+							}
+						}
+					}
 					if(message.getLeaderId() == Node.leaderId){
-						addEdgeToRejectedEdges(message.getCurrentEdge());
+						addEdgeToRejectedEdges(responseEdge);
 						msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "REJECT");
 						
 					} else {
 						msg = createExamineResponseMsg(Message_Type.EXAMINE_RESPONSE, "ACCEPT");
 					}
-					sendMessage(msg, message.getCurrentEdge());
+					sendMessage(msg, responseEdge);
 				}
 				
 			}
@@ -59,7 +74,10 @@ public class Receiver implements Runnable {
 	 */
 	private synchronized void addEdgeToRejectedEdges(Edge currentEdge) {
 		synchronized (Node.basicEdges) {
-			Iterator<Edge> itr = Node.basicEdges.iterator();
+			Node.basicEdges.remove(currentEdge);
+			currentEdge.setEdgeType(Edge_Type.REJECTED);
+			Node.rejectEdges.add(currentEdge);
+			/*Iterator<Edge> itr = Node.basicEdges.iterator();
 			while(itr.hasNext()) {
 				Edge edge = itr.next();
 				if(edge.getMinId() == currentEdge.getMinId() && edge.getMaxId() == currentEdge.getMaxId()) {
@@ -68,7 +86,7 @@ public class Receiver implements Runnable {
 					itr.remove();
 					//Node.basicEdges.remove(edge);
 				}
-			}
+			}*/
 		}
 	}
 
@@ -79,11 +97,39 @@ public class Receiver implements Runnable {
 	 */
 	private Message createExamineResponseMsg(Message_Type msgType, String response) {
 		Message msg = new Message(msgType);
+		msg.setLeaderId(Node.leaderId);
 		msg.setExamineResponse(response);
 		return msg;
 	}
 	
+	private boolean areSameEdges(Edge edge1, Edge edge2) {
+		if (edge1.getMinId() == edge2.getMinId() && edge1.getMaxId() == edge2.getMaxId()) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * @param sourceEdge
+	 * @param destEdge
+	 */
+	private void copyObject(Edge sourceEdge, Edge destEdge) {
+		// only minId and maxId properties are required to check a unique edge
+		destEdge.setMaxId(sourceEdge.getMaxId());
+		destEdge.setMinId(sourceEdge.getMinId());
+		destEdge.setWeight(sourceEdge.getWeight());
+		destEdge.setEdgeType(sourceEdge.getEdgeType());
+		// copy the host and port of the end point
+		destEdge.setEdgeEndHostname(sourceEdge.getEdgeEndHostname());
+		destEdge.setEdgeEndPort(sourceEdge.getEdgeEndPort());
+	}
+	
 	public void sendMessage(Message msg, Edge edge) {
+		if (edge == null) {
+			return;
+		}
+		msg.setCurrentEdge(edge); // the edge from which the message is being
+									// sent
 		ObjectOutputStream outputStream = null;
 		boolean scanning = true;
 		while (scanning) {
