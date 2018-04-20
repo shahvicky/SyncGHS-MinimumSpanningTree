@@ -93,7 +93,7 @@ public class Edge implements Comparable<Edge>, Serializable {
 
 	@Override
 	public String toString() {
-		return "Edge [weight=" + weight + ", minId=" + minId + ", maxId=" + maxId + ", edgeType=" + edgeType + "]";
+		return "Edge [ minId=" + minId + ", maxId=" + maxId + "weight=" + weight +"]";
 	}
 
 	/*

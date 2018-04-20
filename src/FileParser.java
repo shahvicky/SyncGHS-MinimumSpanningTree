@@ -19,7 +19,7 @@ public class FileParser {
 	int numOfNodes;
 
 	public HashMap<Integer, ArrayList<String>> readFile(int myId, String myHost) {
-		File file = new File("C:\\Users\\shahvicky1992\\ProjectWorkspace\\Distributed\\SyncGHS\\src\\config_3.txt");
+		File file = new File("C:\\Users\\shahvicky1992\\ProjectWorkspace\\Distributed\\SyncGHS\\src\\configTest.txt");
 		//File file = new File("/home/user/Desktop/SyncGHS-MinimumSpanningTree/bin/config1.txt");
 		HashMap<Integer, ArrayList<String>> id2HostPostMap = new HashMap<>();
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {

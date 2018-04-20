@@ -23,6 +23,7 @@ public class Message implements Serializable{
 		this.msgType = msgType;
 	}
 	
+	
 	public int getLeaderId() {
 		return leaderId;
 	}
@@ -54,8 +55,8 @@ public class Message implements Serializable{
 	@Override
 	public String toString() {
 		return "Message [leaderId=" + leaderId + ", msgType=" + msgType + ", examineResponse=" + examineResponse
-				+ ", currentEdge=" + currentEdge + ", mwoeEdge=" + mwoeEdge + ", mwoeSourceId=" + mwoeSourceId
-				+ ", mwoeDestinationId=" + mwoeDestinationId + ", newLeaderId=" + newLeaderId + "]";
+				+ ", currentEdge=" + currentEdge + ", mwoeEdge=" + mwoeEdge + ", newLeaderId=" + newLeaderId
+				+ ", phaseNo=" + phaseNo + "]";
 	}
 
 	public void setCurrentEdge(Edge currentEdge) {

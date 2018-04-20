@@ -22,7 +22,8 @@ public class SyncGHS {
 	boolean algoTermination;
 
 	public SyncGHS(int numOfNodes) {
-		this.numOfRounds = (int)Math.ceil(Math.log(numOfNodes));
+		//this.numOfRounds = (int)Math.ceil(Math.log(numOfNodes));
+		this.numOfRounds = numOfNodes;
 	}
 
 	public void constructMST() {
@@ -52,7 +53,6 @@ public class SyncGHS {
 					logger.debug("Waiting for SEARCH_WMOE Msg");
 					if (!Node.buffer.isEmpty()) {
 						for (Message msg : Node.buffer) {
-							logger.debug("Received:  " + msg.toString());
 							if (receivedSearchMWOEMsg) {
 								break;
 							}
@@ -71,7 +71,7 @@ public class SyncGHS {
 									 */
 									if (areSameEdges(edge, receivedFromEdge)) {
 										//receivedFromEdge from Node's perspective
-										receivedFromEdge = edge;
+										copyObject(edge, receivedFromEdge);
 										continue;
 									}
 									sendMessage(msg, edge);
@@ -101,7 +101,7 @@ public class SyncGHS {
 			Message replyMWOEMsg = createReplyMWOEMsg(Message_Type.REPLY_MWOE, localMWOE, Node.myId);
 			// initialize to max value to find min
 			Edge receivedMWOE = new Edge(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-			Message receivedMWOEMsg = null;
+			Message receivedMWOEMsg = new Message(Message_Type.REPLY_MWOE);
 			if(Node.myId == Node.leaderId) {
 				noOfAck = Node.branchEdges.size();
 			} else {
@@ -142,6 +142,8 @@ public class SyncGHS {
 								if (msg.getMwoeEdge().compareTo(receivedMWOE) < 0) {
 									receivedMWOE = msg.getMwoeEdge();
 									receivedMWOEMsg = msg;
+								} else {
+									receivedMWOEMsg.setMwoeEdge(msg.getMwoeEdge());
 								}
 								Node.buffer.remove(msg);
 							} else {
@@ -163,6 +165,8 @@ public class SyncGHS {
 				if (Node.myId != Node.leaderId) {
 					if (receivedMWOE.compareTo(localMWOE) == 0) {
 						logger.debug("No MWOE for me and my children");
+						logger.warn(receivedMWOEMsg);
+						logger.warn(receivedFromEdge);
 						sendMessage(receivedMWOEMsg, receivedFromEdge);
 					}
 					else if (receivedMWOE.compareTo(localMWOE) < 0) {
@@ -181,6 +185,15 @@ public class SyncGHS {
 					logger.debug("No MWOE in the component");
 					// exit from algorithm
 					algoTermination = true;
+					/*
+					 * Broadcast ADD_MWOE for child nodes to terminate
+					 * along branch edges
+					 */
+					logger.debug("Start of ADD_MWOE broadcast");
+					Message addMWOEMsg = createAddMWOEMsg(Message_Type.ADD_MWOE, receivedMWOE);
+					for (Edge edge : Node.branchEdges) {
+						sendMessage(addMWOEMsg, edge);
+					}
 				} else if (receivedMWOE.compareTo(localMWOE) < 0) {
 					logger.debug("Received MWOE is least of the component");
 					/*
@@ -228,7 +241,7 @@ public class SyncGHS {
 				// edges except the one from which you received this,
 				// then check if you have to add mwoe,
 				boolean receivedAddMWOEMsg = false;
-				Message addMWOEMsg = null;
+				Message addMWOEMsg = new Message(Message_Type.ADD_MWOE);
 				while (!receivedAddMWOEMsg) {
 					if (!Node.buffer.isEmpty()) {
 						for (Message msg : Node.buffer) {
@@ -265,37 +278,42 @@ public class SyncGHS {
 					}
 
 				}
-				// if you have to add, then mark it branch edge
-				if (addMWOEMsg.getMwoeEdge().getMinId() == Node.myId
-						|| addMWOEMsg.getMwoeEdge().getMaxId() == Node.myId) {
-					logger.debug("I have to add component MWOE");
-					// add to branch edge and I have to send join request along
-					// this addMWOEMsg.getMwoeEdge()
-					Edge mwoe = new Edge();
-					for(Edge edge : Node.basicEdges) {
-						//this loop is required to find proper endpoint host and post 
-						if(areSameEdges(edge, addMWOEMsg.getMwoeEdge())) {
-							copyObject(edge, mwoe);
-						}
-					}
-					if(mwoe.getMinId() == mwoe.getMaxId()) {
-						for(Edge edge : Node.branchEdges) {
+				if(addMWOEMsg.getMwoeEdge().getMinId() == Integer.MAX_VALUE && addMWOEMsg.getMwoeEdge().getMaxId() == Integer.MAX_VALUE) {
+					algoTermination = true;
+				}
+				if(!algoTermination) {
+					// if you have to add, then mark it branch edge
+					if (addMWOEMsg.getMwoeEdge().getMinId() == Node.myId
+							|| addMWOEMsg.getMwoeEdge().getMaxId() == Node.myId) {
+						logger.debug("I have to add component MWOE");
+						// add to branch edge and I have to send join request along
+						// this addMWOEMsg.getMwoeEdge()
+						Edge mwoe = new Edge();
+						for(Edge edge : Node.basicEdges) {
 							//this loop is required to find proper endpoint host and post 
-							if(areSameEdges(edge, addMWOEMsg.getCurrentEdge())) {
+							if(areSameEdges(edge, addMWOEMsg.getMwoeEdge())) {
 								copyObject(edge, mwoe);
 							}
 						}
+						/*if(mwoe.getMinId() == mwoe.getMaxId()) {
+							for(Edge edge : Node.branchEdges) {
+								//this loop is required to find proper endpoint host and post 
+								if(areSameEdges(edge, addMWOEMsg.getCurrentEdge())) {
+									copyObject(edge, mwoe);
+								}
+							}
+						}*/ //this was incorrect, this shouldn't happen
+						addEdgeToBranchEdge(mwoe);
+						Message msg = createJoinMsg(Message_Type.JOIN);
+						sendMessage(msg, mwoe);
+						isLocalMWOE = true;
+						copyObject(mwoe, isCandidateForLeader);
 					}
-					addEdgeToBranchEdge(mwoe);
-					Message msg = createJoinMsg(Message_Type.JOIN);
-					sendMessage(msg, mwoe);
-					isLocalMWOE = true;
-					copyObject(isCandidateForLeader, mwoe);
-				}
-				// then finally broadcast null msgs to basic edges
-				Message nullMsg = createNullMsg(Message_Type.NULL);
-				for (Edge edge : Node.basicEdges) {
-					sendMessage(nullMsg, edge);
+					// then finally broadcast null msgs to basic edges
+					Message nullMsg = createNullMsg(Message_Type.NULL);
+					for (Edge edge : Node.basicEdges) {
+						sendMessage(nullMsg, edge);
+					}
 				}
 			} /*
 				 * end of else part --> if I am not leader, then received ADD_MWOE
@@ -407,8 +425,9 @@ public class SyncGHS {
 							if (msg.getMsgType().equals(Message_Type.NEW_LEADER)) {
 								receivedNewLeaderMsg = true;
 								Node.leaderId = msg.getNewLeaderId();
+								receivedFromEdge = msg.getCurrentEdge();
 								for (Edge edge : Node.branchEdges) {
-									if (areSameEdges(msg.getCurrentEdge(), edge)) {
+									if (areSameEdges(receivedFromEdge, edge)) {
 										continue;
 									}
 									sendMessage(msg, edge);
@@ -435,7 +454,7 @@ public class SyncGHS {
 			
 			//check if someone is waiting for examine_response msg
 			for(Message msg : Node.buffer) {
-				if(msg.msgType.equals(Message_Type.EXAMINE)) {
+				if(msg.msgType.equals(Message_Type.EXAMINE) && msg.getPhaseNo()==Node.phase.intValue()) {
 					Edge examineEdge = new Edge();
 					Message message;
 					for(Edge edge : Node.basicEdges) {
@@ -446,6 +465,14 @@ public class SyncGHS {
 					}
 					if(examineEdge.getMinId() == examineEdge.getMaxId()) {
 						for(Edge edge : Node.branchEdges) {
+							//this loop is required to find proper endpoint host and post 
+							if(areSameEdges(edge, msg.getCurrentEdge())) {
+								copyObject(edge, examineEdge);
+							}
+						}
+					}
+					if(examineEdge.getMinId() == examineEdge.getMaxId()) {
+						for(Edge edge : Node.rejectEdges) {
 							//this loop is required to find proper endpoint host and post 
 							if(areSameEdges(edge, msg.getCurrentEdge())) {
 								copyObject(edge, examineEdge);
@@ -608,6 +635,7 @@ public class SyncGHS {
 		Edge mwoeEdge = null;
 		while (!foundLocalMWOE) {
 			// find MWOE => first edge in basic
+			logger.debug(Node.basicEdges.toString());
 			if (!Node.basicEdges.isEmpty()) {
 				Edge candidateEdge = Node.basicEdges.get(0);
 				// send Examine msg to selected MWOE to check if its not in the
@@ -617,7 +645,7 @@ public class SyncGHS {
 				sendMessage(examineMsg, candidateEdge);
 				String response = getExamineResponse();
 				if (response.equals("REJECT")) {
-					Edge rejectedEdge = Node.basicEdges.remove(0);
+					Edge rejectedEdge = candidateEdge;
 					addEdgeToRejectedEdges(rejectedEdge);
 				} else if (response.equals("ACCEPT")) {
 					mwoeEdge = candidateEdge;
@@ -640,8 +668,21 @@ public class SyncGHS {
 	 * @param rejectedEdge
 	 */
 	private void addEdgeToRejectedEdges(Edge rejectedEdge) {
-		rejectedEdge.setEdgeType(Edge_Type.REJECTED);
-		Node.rejectEdges.add(rejectedEdge);
+		synchronized (Node.basicEdges) {
+			/*Node.basicEdges.remove(currentEdge);
+			currentEdge.setEdgeType(Edge_Type.REJECTED);
+			Node.rejectEdges.add(currentEdge);*/
+			Iterator<Edge> itr = Node.basicEdges.iterator();
+			while(itr.hasNext()) {
+				Edge edge = itr.next();
+				if(edge.getMinId() == rejectedEdge.getMinId() && edge.getMaxId() == rejectedEdge.getMaxId()) {
+					edge.setEdgeType(Edge_Type.REJECTED);
+					Node.rejectEdges.add(edge);
+					itr.remove();
+					//Node.basicEdges.remove(edge);
+				}
+			}
+		}
 
 	}
 
@@ -695,7 +736,7 @@ public class SyncGHS {
 	}
 
 	public void sendMessage(Message msg, Edge edge) {
-		if (edge == null) {
+		if (edge == null || msg.getMsgType().equals(null)) {
 			return;
 		}
 		msg.setPhaseNo(Node.phase.intValue());
@@ -724,7 +765,7 @@ public class SyncGHS {
 		try {
 			outputStream.writeObject(msg);
 			outputStream.reset();
-			logger.debug(edge.getEdgeEndHostname() + ":" + edge.getEdgeEndPort() + " sent " + msg.toString());
+			logger.debug("Sent " + msg.toString());
 		} catch (IOException e) {
 			logger.error("IOException" + e);
 		}

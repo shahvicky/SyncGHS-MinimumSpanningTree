@@ -26,10 +26,10 @@ public class Receiver implements Runnable {
 			boolean addFlag = true;
 			in = new ObjectInputStream(client.getInputStream());
 			message = (Message) in.readObject();
-			logger.debug(message.toString());
+			logger.debug("Received "+message.toString());
 			// immediately send Reject if the Examine msg received from same component
 			if(message.getMsgType().equals(Message_Type.EXAMINE)) {
-				if(!(message.getPhaseNo() > Node.phase.intValue())) {
+				if(message.getPhaseNo() == Node.phase.intValue()) {
 					addFlag= false;
 					Message msg;
 					synchronized (this) {
@@ -42,6 +42,14 @@ public class Receiver implements Runnable {
 						}
 						if(responseEdge.getMinId() == responseEdge.getMaxId()) {
 							for(Edge edge : Node.branchEdges) {
+								//this loop is required to find proper endpoint host and post 
+								if(areSameEdges(edge, message.getCurrentEdge())) {
+									copyObject(edge, responseEdge);
+								}
+							}
+						}
+						if(responseEdge.getMinId() == responseEdge.getMaxId()) {
+							for(Edge edge : Node.rejectEdges) {
 								//this loop is required to find proper endpoint host and post 
 								if(areSameEdges(edge, message.getCurrentEdge())) {
 									copyObject(edge, responseEdge);
@@ -75,10 +83,10 @@ public class Receiver implements Runnable {
 	 */
 	private synchronized void addEdgeToRejectedEdges(Edge currentEdge) {
 		synchronized (Node.basicEdges) {
-			Node.basicEdges.remove(currentEdge);
+			/*Node.basicEdges.remove(currentEdge);
 			currentEdge.setEdgeType(Edge_Type.REJECTED);
-			Node.rejectEdges.add(currentEdge);
-			/*Iterator<Edge> itr = Node.basicEdges.iterator();
+			Node.rejectEdges.add(currentEdge);*/
+			Iterator<Edge> itr = Node.basicEdges.iterator();
 			while(itr.hasNext()) {
 				Edge edge = itr.next();
 				if(edge.getMinId() == currentEdge.getMinId() && edge.getMaxId() == currentEdge.getMaxId()) {
@@ -87,7 +95,7 @@ public class Receiver implements Runnable {
 					itr.remove();
 					//Node.basicEdges.remove(edge);
 				}
-			}*/
+			}
 		}
 	}
 

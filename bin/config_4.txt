@@ -7,10 +7,10 @@
 # Format is:
 # UID Hostname Port
 
-2  dc02.utdallas.edu 2221
-3  dc03.utdallas.edu 2222
-4  dc04.utdallas.edu 2223
-5  dc05.utdallas.edu 2224
+2  localhost 2221
+3  localhost 2222
+4  localhost 2223
+5  localhost 2224
 
 # List of edges and their weight, one per line. An edge is denoted
 # by (smaller uid, larger uid)
