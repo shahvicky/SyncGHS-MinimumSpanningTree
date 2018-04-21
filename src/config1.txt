@@ -1,32 +1,226 @@
 #
+
 # Configuration file for CS 6380 Project 2 (Spring 2018)
-## As per the “shell” convention, anything following a hash sign is
+
+## As per the shell convention, anything following a hash sign is
+
 # a comment and should be ignored by the parser.
+
 #
+
 # Number of nodes
-7
+
+30
 # Here we list the individual nodes
+
 #
+
 # Format is:
+
 # UID Hostname Port
+
 #
-5	 dc02.utdallas.edu	 1234
-200	 dc03.utdallas.edu	 1233
-8	 dc04.utdallas.edu	 1233
-184	 dc05.utdallas.edu	 1232
-9	 dc06.utdallas.edu	 1233
-37	 dc07.utdallas.edu	 1235
-78	 dc08.utdallas.edu	 1236
+
+1	 localhost	 1221
+
+2	 localhost	 1222
+
+3	 localhost	 1223
+
+4	 localhost	 1224
+
+5	 localhost	 1225
+
+6	 localhost	 1226
+
+7	 localhost	 1227
+
+8	 localhost	 1228
+
+9	 localhost	 1229
+
+10	 localhost	 1230
+
+11	 localhost	 1231
+
+12	 localhost	 1232
+
+13	 localhost	 1250
+
+14	 localhost	 1233
+
+15	 localhost	 1234
+
+16	 localhost	 1235
+
+17	 localhost	 1236
+
+18	 localhost	 1237
+
+19	 localhost	 1238
+
+20	 localhost	 1239
+
+21	 localhost	 1240
+
+22	 localhost	 1241
+
+23	 localhost	 1242
+
+24	 localhost	 1243
+
+25	 localhost	 1244
+
+26	 localhost	 1245
+
+27	 localhost	 1246
+
+28	 localhost	 1247
+
+29	 localhost	 1248
+
+30	 localhost	 1249
+
 #
+
 # List of edges and their weight, one per line. An edge is denoted
+
 # by (smaller uid, larger uid)
+
 #
-(5,200)		5
-(5,8)		3
-(5,37)	 	10
-(8,184)		1
-(8,78) 		3
-(184,200) 	3
-(37,78) 	1
-(9,78) 		2
-(9,200)		5
+
+(1,2)		7
+
+(2,3)		67
+
+(3,4)		66
+
+(4,5)		10
+
+(1,6)		8
+
+(2,7)		68
+
+(3,8)		13
+
+(4,9)		31
+
+(5,10)		41
+
+(2,6)		22
+
+(3,7)		20
+
+(3,9)		69
+
+(5,9)		43
+
+(6,7)      62
+
+(7,8)      12
+
+(8,9)      52
+
+(9,10)     26
+
+(6,11)     30
+
+(7,12)     36
+
+(8,13)     65
+
+(9,14)     42
+
+(10,15)    83
+
+(7,11)     72
+
+(8,12)     40
+
+(9,13)     32
+
+(11,12)   51
+
+(12,13)   64
+
+(13,14)   16
+
+(14,15)   82
+
+(11,16)   18
+
+(12,17)   2
+
+(13,18)   63
+
+(14,19)   81
+
+(15,20)   6
+
+(11,17)   71
+
+(12,18)   24
+
+(14,18)   84
+
+(15,19)   25
+
+(16,17)   70
+
+(17,18)   1
+
+(18,19)   76
+
+(19,20)   5
+
+(16,21)   77
+
+(17,22)   80
+
+(18,23)   75
+
+(19,24)   45
+
+(20,25)   34
+
+(17,21)   87
+
+(17,23)   85
+
+(18,24)   86
+
+(19,25)   46
+
+(21,22)   47
+
+(22,23)   11
+
+(23,24)   50
+
+(24,25)   88
+
+(21,26)   4
+
+(22,27)   35
+
+(23,28)   61
+
+(24,29)   44
+
+(25,30)   15
+
+(21,27)   21
+
+(23,27)   48
+
+(24,28)   9
+
+(25,29)   23
+
+(26,27)  3
+
+(27,28)  60
+
+(28,29)  33
+
+(29,30)  14

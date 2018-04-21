@@ -490,7 +490,7 @@ public class SyncGHS {
 			}
 			
 		} // end of while log(n) rounds
-
+		logger.info("******My ID: " + Node.myId);
 		logger.info("Result" + Node.branchEdges.toString());
 	} // end of constructMST
 
