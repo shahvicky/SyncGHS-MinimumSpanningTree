@@ -1,3 +1,4 @@
+import java.awt.TrayIcon.MessageType;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
@@ -143,7 +144,7 @@ public class SyncGHS {
 									receivedMWOE = msg.getMwoeEdge();
 									receivedMWOEMsg = msg;
 								} else {
-									receivedMWOEMsg.setMwoeEdge(msg.getMwoeEdge());
+									receivedMWOEMsg.setMwoeEdge(receivedMWOE);
 								}
 								Node.buffer.remove(msg);
 							} else {
@@ -165,8 +166,8 @@ public class SyncGHS {
 				if (Node.myId != Node.leaderId) {
 					if (receivedMWOE.compareTo(localMWOE) == 0) {
 						logger.debug("No MWOE for me and my children");
-						logger.warn(receivedMWOEMsg);
-						logger.warn(receivedFromEdge);
+						logger.debug(receivedMWOEMsg);
+						logger.debug(receivedFromEdge);
 						sendMessage(receivedMWOEMsg, receivedFromEdge);
 					}
 					else if (receivedMWOE.compareTo(localMWOE) < 0) {
@@ -251,7 +252,8 @@ public class SyncGHS {
 							if (msg.getMsgType().equals(Message_Type.ADD_MWOE)) {
 								logger.debug("Received ADD_MWOE Msg");
 								receivedAddMWOEMsg = true;
-								addMWOEMsg = msg;
+								addMWOEMsg = createAddMWOEMsg(Message_Type.ADD_MWOE, msg.getMwoeEdge());
+								//addMWOEMsg = msg;
 								logger.debug("Sending ADD_MWOE Msg to child edges");
 								for (Edge edge : Node.branchEdges) {
 									if (areSameEdges(msg.getCurrentEdge(), edge)) {
@@ -303,6 +305,7 @@ public class SyncGHS {
 								}
 							}
 						}*/ //this was incorrect, this shouldn't happen
+						//TODO
 						addEdgeToBranchEdge(mwoe);
 						Message msg = createJoinMsg(Message_Type.JOIN);
 						sendMessage(msg, mwoe);
@@ -375,7 +378,7 @@ public class SyncGHS {
 							boolean isCoreEdge = areSameEdges(isCandidateForLeader, joinEdge);
 							if (isCoreEdge) {
 								logger.debug("I am on core edge");
-								copyObject(isCandidateForLeader, coreEdge);
+								copyObject(joinEdge, coreEdge);
 								isOnCoreEdge = true;
 							}
 							Node.buffer.remove(msg);
@@ -425,7 +428,7 @@ public class SyncGHS {
 							if (msg.getMsgType().equals(Message_Type.NEW_LEADER)) {
 								receivedNewLeaderMsg = true;
 								Node.leaderId = msg.getNewLeaderId();
-								receivedFromEdge = msg.getCurrentEdge();
+								copyObject(msg.getCurrentEdge(), receivedFromEdge);
 								for (Edge edge : Node.branchEdges) {
 									if (areSameEdges(receivedFromEdge, edge)) {
 										continue;
@@ -442,7 +445,7 @@ public class SyncGHS {
 						}
 					}
 					// wait for some message to come or before going to the step
-					logger.info("Waiting for NEW_LEADER Msg");
+					logger.debug("Waiting for NEW_LEADER Msg");
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException e) {
@@ -632,7 +635,7 @@ public class SyncGHS {
 	public Edge findLocalMWOE() {
 		logger.debug("Finding local MWOE");
 		boolean foundLocalMWOE = false;
-		Edge mwoeEdge = null;
+		Edge mwoeEdge = new Edge();
 		while (!foundLocalMWOE) {
 			// find MWOE => first edge in basic
 			logger.debug(Node.basicEdges.toString());
@@ -645,10 +648,12 @@ public class SyncGHS {
 				sendMessage(examineMsg, candidateEdge);
 				String response = getExamineResponse();
 				if (response.equals("REJECT")) {
-					Edge rejectedEdge = candidateEdge;
-					addEdgeToRejectedEdges(rejectedEdge);
+					/*copyObject(candidateEdge, rejectedEdge);
+					Edge rejectedEdge = candidateEdge;*/
+					addEdgeToRejectedEdges(candidateEdge);
 				} else if (response.equals("ACCEPT")) {
-					mwoeEdge = candidateEdge;
+					copyObject(candidateEdge, mwoeEdge);
+					//mwoeEdge = candidateEdge;
 					foundLocalMWOE = true;
 				} else {
 					logger.error("Something wrong happened in examine resonse");

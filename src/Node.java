@@ -47,13 +47,13 @@ public class Node {
 		Collections.sort(basicEdges);
 		//initially, myId = leaderId for each node
 		leaderId = myId;
-
+		logger.info("My Id: " + Node.myId);
 		Listener listener = new Listener(myPort);
 		Thread thread = new Thread(listener);
 		thread.start();
 		
 		SyncGHS ghs = new SyncGHS(numOfNodes);
-		logger.debug("Starting MST Construction");
+		logger.info("Starting MST Construction");
 		ghs.constructMST();
 		
 		
